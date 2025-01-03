@@ -9,3 +9,7 @@ git2 = "0.19.0"
 log = "0.4.22"
 simplelog = "0.12.2"
 chrono = "0.4"
+axum = "0.8.1"
+tokio = { version = "1.42.0", features = ["full"] }
+serde = { version = "1.0.217", features = ["derive"] }
+rand = "0.8.5"
