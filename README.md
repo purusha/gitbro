@@ -1,6 +1,6 @@
 # gitbro
 
-# code coverage
+# code coverage (https://github.com/taiki-e/cargo-llvm-cov)
 
 1. install cargo subcommand llvm-cov
     $> cargo install cargo-llvm-cov
