@@ -56,14 +56,55 @@ pub fn resolve_repo_git(path: &Path) -> Result<Repository, RepoError> {
     }
 }
 
-#[cfg(test)]
+//#[cfg(test)]
+#[suitest::suite(abc_suite)]
+#[suitest::suite_cfg(sequential = false, verbose = true)]
 mod tests {
     use std::path::PathBuf;
     use rand::{distributions::Alphanumeric, Rng};
-    use fs::{create_dir, File};
+    use fs::{create_dir, remove_dir, remove_file, File};
+
+    use suitest::{after_all, before_all};
 
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
+
+    #[derive(Debug, Clone)]
+    struct TestData {
+        file: String,
+        folder: String
+    }
+
+    #[before_all]
+    fn setup() -> TestData {        
+        let a_file = PathBuf::from("/tmp/").join("simple-file");
+        File::create(a_file.clone()).unwrap();
+
+        let a_folder: String = rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(42)
+            .map(char::from)
+            .collect();
+
+        let a_folder_path: String = format!("/tmp/simple-dir-{}", a_folder);
+
+        create_dir(a_folder_path.clone()).unwrap();        
+
+        let td: TestData = TestData { 
+            file: a_file.into_os_string().into_string().unwrap(), 
+            folder: a_folder_path
+        };
+
+        td
+    }
+
+    #[after_all]
+    fn tear_down(td: TestData) {
+        println!("#### tear_down on {:?} ####", td);
+
+        remove_file(td.file.clone()).unwrap();
+        remove_dir(td.folder.clone()).unwrap();
+    }
 
     #[test]
     fn tmp_is_always_available() {
@@ -76,24 +117,13 @@ mod tests {
     }
 
     #[test]
-    fn with_path_that_is_a_file() {
-        let file = PathBuf::from("/tmp/").join("simple-file");
-        File::create(file).unwrap();
-
-        assert_eq!(check_directory("/tmp/simple-file").err().unwrap(), RepoError::IsNotADirectory);
+    fn with_path_that_is_a_file(td: TestData) {   
+        assert_eq!(check_directory(&td.file).err().unwrap(), RepoError::IsNotADirectory);
     }
 
     #[test]
-    fn with_empty_folder() {
-        let s: String = rand::thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(42)
-            .map(char::from)
-            .collect();
-
-        create_dir(format!("/tmp/simple-dir-{}", s)).unwrap();
-
-        assert_eq!(check_directory(&format!("/tmp/simple-dir-{}", s)).err().unwrap(), RepoError::EmptyDirectory);
+    fn with_empty_folder(td: TestData) {
+        assert_eq!(check_directory(&td.folder).err().unwrap(), RepoError::EmptyDirectory);
     }
-
+    
 }
