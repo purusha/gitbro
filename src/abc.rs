@@ -56,7 +56,6 @@ pub fn resolve_repo_git(path: &Path) -> Result<Repository, RepoError> {
     }
 }
 
-//#[cfg(test)]
 #[suitest::suite(abc_suite)]
 #[suitest::suite_cfg(sequential = false, verbose = true)]
 mod tests {
@@ -77,18 +76,17 @@ mod tests {
 
     #[before_all]
     fn setup() -> TestData {        
-        let a_file = PathBuf::from("/tmp/").join("simple-file");
-        File::create(a_file.clone()).unwrap();
+        let a_file: PathBuf = PathBuf::from("/tmp/").join("simple-file");
+        File::create(&a_file).unwrap();
 
-        let a_folder: String = rand::thread_rng()
+        let a_folder_path: String = format!("/tmp/simple-dir-{}", rand::thread_rng()
             .sample_iter(&Alphanumeric)
             .take(42)
             .map(char::from)
-            .collect();
+            .collect::<String>()
+        );
 
-        let a_folder_path: String = format!("/tmp/simple-dir-{}", a_folder);
-
-        create_dir(a_folder_path.clone()).unwrap();        
+        create_dir(&a_folder_path).unwrap();        
 
         let td: TestData = TestData { 
             file: a_file.into_os_string().into_string().unwrap(), 
