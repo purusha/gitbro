@@ -58,6 +58,10 @@ pub fn resolve_repo_git(path: &Path) -> Result<Repository, RepoError> {
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+    use rand::{distributions::Alphanumeric, Rng};
+    use fs::{create_dir, File};
+
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
@@ -69,6 +73,27 @@ mod tests {
     #[test]
     fn folder_that_does_not_exist() {
         assert_eq!(check_directory("/does-not-exist").err().unwrap(), RepoError::DoesNotExist);
+    }
+
+    #[test]
+    fn with_path_that_is_a_file() {
+        let file = PathBuf::from("/tmp/").join("simple-file");
+        File::create(file).unwrap();
+
+        assert_eq!(check_directory("/tmp/simple-file").err().unwrap(), RepoError::IsNotADirectory);
+    }
+
+    #[test]
+    fn with_empty_folder() {
+        let s: String = rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(42)
+            .map(char::from)
+            .collect();
+
+        create_dir(format!("/tmp/simple-dir-{}", s)).unwrap();
+
+        assert_eq!(check_directory(&format!("/tmp/simple-dir-{}", s)).err().unwrap(), RepoError::EmptyDirectory);
     }
 
 }
